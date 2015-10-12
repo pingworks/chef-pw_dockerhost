@@ -28,7 +28,9 @@ apt_repository 'docker' do
   action :add
 end
 
-package 'docker-engine'
+package 'docker-engine' do
+  version '1.8.1-0~trusty'
+end
 
 service 'docker' do
   provider Chef::Provider::Service::Upstart
