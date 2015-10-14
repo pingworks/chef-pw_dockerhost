@@ -16,4 +16,6 @@ suites:
   - name: default
     run_list:
       - recipe[pw_dockerhost::default]
-
+    driver:
+      customize:
+        memory: 2048

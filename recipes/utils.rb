@@ -17,32 +17,21 @@
 # limitations under the License.
 #
 
-package 'apt-transport-https'
-
-apt_repository 'docker' do
-  uri 'https://apt.dockerproject.org/repo'
-  distribution 'ubuntu-trusty'
-  components ['main']
-  keyserver 'keyserver.ubuntu.com'
-  key '58118E89F3A912897C070ADBF76221572C52609D'
-  action :add
+bash 'install nsenter' do
+  user 'root'
+  cwd '/tmp'
+  code <<-EOH
+  docker pull jpetazzo/nsenter
+  docker run --rm -v /usr/local/bin:/target jpetazzo/nsenter
+  docker rmi jpetazzo/nsenter
+  EOH
+  not_if 'test -x /usr/local/bin/nsenter'
 end
 
-package 'docker-engine' do
-  version '1.8.1-0~trusty'
-end
-
-service 'docker' do
-  provider Chef::Provider::Service::Upstart
-  action [:enable, :start]
-end
-
-cookbook_file 'default-docker' do
-  path '/etc/default/docker'
-  mode '0600'
+cookbook_file '/usr/local/bin/docker-mount.sh' do
+  source 'docker-mount.sh'
   owner 'root'
   group 'root'
-  notifies :restart, 'service[docker]', :immediately
+  mode 00755
+  not_if 'test -x /usr/local/bin/docker-mount.sh'
 end
-
-include_recipe 'pw_dockerhost::utils'
