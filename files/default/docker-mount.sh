@@ -12,14 +12,19 @@ if [ -z "$1" -o -z "$2" -o -z "$3" ]; then
   exit 1
 fi
 
+if docker-enter $CONTAINER sh -c "cut -d' ' -f2 /proc/mounts" | grep $CONTPATH >/dev/null; then
+  echo "$CONTPATH seems to be already mounted."
+  exit 0
+fi
+
 REALPATH=$(readlink --canonicalize $HOSTPATH)
 #printf "REALPATH:%s\n" "$REALPATH"
 FILESYS=$(df -P $REALPATH | tail -n 1 | awk '{print $6}')
 
 while read DEV MOUNT JUNK
-do [ $MOUNT = $FILESYS ] && break
+do [ "$MOUNT" = "$FILESYS" ] && break
 done </proc/mounts
-[ $MOUNT = $FILESYS ] # Sanity check!
+[ "$MOUNT" = "$FILESYS" ] # Sanity check!
 REALDEV=$(readlink --canonicalize $DEV)
 #printf "DEV:%s\n" "$DEV"
 #printf "REALDEV:%s\n" "$REALDEV"
